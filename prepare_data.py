@@ -22,22 +22,29 @@ class PrepareData():
         self.__logger.info("Starting handling raw data file: %s", self.__genotype_path)
         data = []
         fix_error = {'II': 'TT', 'ID': 'TC', 'DD': 'CC'}
-        transform = {'CA': 0,
-                     'CC': 1,
-                     'TC': 2,
-                     'AT': 3,
-                     'CG': 4,
-                     'AC': 5,
-                     'TA': 6,
-                     'AA': 7,
-                     'TT': 8,
-                     'AG': 9,
-                     'GT': 10,
-                     'GG': 11,
-                     'TG': 12,
-                     'GC': 13,
-                     'CT': 14,
-                     'GA': 15}
+
+        a = 1
+        c = 2
+        t = 3
+        g = 6
+        transform = {
+            'AA': 2,
+            'CC': 4,
+            'TT': 6,
+            'GG': 12,
+            'AC': 3,
+            'CA': 3,
+            'AT': 4,
+            'TA': 4,
+            'AG': 7,
+            'GA': 7,
+            'CT': 5,
+            'TC': 5,
+            'CG': 8,
+            'GC': 8,
+            'GT': 9,
+            'TG': 9,
+        }
 
         with open(self.__genotype_path) as data_file:
             for line in data_file.readlines():
@@ -67,6 +74,6 @@ class PrepareData():
 # print(len(fac[0]))
 if __name__ == "__main__":
     p = PrepareData()
-    print(len(p.parse_raw_data_file()[0]))
-    print(p.parse_raw_data_file()[1])
-    print(p.parse_tag())
+    print(len(p.raw_data[0]))
+    print(p.raw_data[1])
+    print(p.tag)

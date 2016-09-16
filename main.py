@@ -10,8 +10,8 @@ raw_data = prepared_data.raw_data
 training_data = raw_data[1:]
 index_data = raw_data[0]
 
-forest = RandomForestClassifier(n_estimators=10000, random_state=0, n_jobs=1)
-forest.fit(data, labels)
+forest = RandomForestClassifier(n_estimators=10000, random_state=0, n_jobs=-1)
+forest.fit(training_data, labels)
 
 importances = forest.feature_importances_
 indices = np.argsort(importances)[::-1]
