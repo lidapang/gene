@@ -1,32 +1,20 @@
-import pandas as pd
 import numpy as np
-from sklearn.feature_extraction import DictVectorizer
 
-phenotype_path = "./data/genotype.dat"
+from prepare_data import PrepareData
+from sklearn.ensemble import RandomForestClassifier
 
-def parse_line(line):
-    raw = line.split(" ")
-    raw[-1] = raw[-1][0:-1]
-    return raw
+prepared_data = PrepareData()
 
-def parse_file(file_path):
-    data = []
-    fix_error = {'II': 'TT', 'ID': 'TC'}
-    transform = {'CA': 0, 'CC': 1, 'TC': 2, 'AT': 3, 'CG': 4, 'AC': 5, 'TA': 6, 'AA': 7, 'TT': 8, 'AG': 9, 'GT': 10, 'GG': 11, 'TG': 12, 'GC': 13, 'CT': 14, 'GA': 15}
+labels = prepared_data.tag
+raw_data = prepared_data.raw_data
+training_data = raw_data[1:]
+index_data = raw_data[0]
 
-    with open(file_path) as data_file:
-        for line in data_file.readlines():
-            tmp_line = parse_line(line)
-            fix_error_line = [fix_error[x] if x in fix_error else x for x in tmp_line]
-            transform_line = [transform[x] if x in transform else x for x in fix_error_line]
-            data.append(transform_line)
+forest = RandomForestClassifier(n_estimators=10000, random_state=0, n_jobs=1)
+forest.fit(data, labels)
 
-    return data
+importances = forest.feature_importances_
+indices = np.argsort(importances)[::-1]
 
-raw_data = parse_file(phenotype_path)
-data_frame = pd.DataFrame(raw_data[1:], columns=raw_data[0])
-# fac = pd.factorize(data_frame['rs3094315'])
-print(data_frame)
-# print(fac[0])
-# print(type(fac[0]))
-# print(len(fac[0]))
+for f in range(len(index_data)):
+    print("%2d) %-*s %f" % (f+1, 30, index_data[f], importances[indices[f]]))
