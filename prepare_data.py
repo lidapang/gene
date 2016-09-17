@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import logging
+
 from logging.config import fileConfig
 
 class PrepareData():
-    def __init__(self, genotype_path="./data/genotype.dat", phenotype_path="./data/phenotype.txt"):
+    def __init__(self, genotype_path="./data/genotype.dat", phenotype_path="./data/phenotype.txt", gene_dir="./data/gene_info/"):
         fileConfig("logging_config.ini")
         self.__logger = logging.getLogger(self.__class__.__name__)
         self.__genotype_path = genotype_path
         self.__logger.info("Genotype file name: %s", self.__genotype_path)
         self.__phenotype_path = phenotype_path
         self.__logger.info("Phenotype file name: %s", self.__phenotype_path)
+        self.__gene_info_dir = gene_dir
+        self.__logger.info("Gene info dir name: %s", self.__gene_info_dir)
 
     def __parse_line(self, line):
         raw = line.split(" ")
@@ -62,8 +65,79 @@ class PrepareData():
                 tags.append(line[0])
         return tags
 
+    def __read_gene_content(self, gene_num):
+        file_name = self.__gene_info_dir + "gene_" + str(gene_num) + ".dat"
+        file_content = []
+
+        with open(file_name) as file_data:
+            for line in file_data.readlines():
+                file_content.append(line[:-1])
+
+        return file_content
+
+    def __process_one_gene(self, gene_num):
+        importances = self.__importances
+        gene_data = self.__read_gene_content(gene_num)
+        rate = 0
+
+        for importance in importances:
+            if importance in gene_data:
+                rate = rate + importances[importance]
+
+        return rate
+
+    def process_all_gene(self):
+        import numpy as np
+        import pandas as pd
+        from pprint import pprint
+        from sklearn.ensemble import RandomForestClassifier
+
+        index_data = self.raw_data[0]
+
+        forest = RandomForestClassifier(n_estimators=8000, random_state=0, n_jobs=-1, oob_score=True)
+        forest.fit(self.raw_data[1:], self.tag)
+
+        importances = forest.feature_importances_
+
+        indices = np.argsort(importances)[::-1]
+        self.__importances = dict(map(lambda x: (index_data[x], importances[x]), indices[0:2]))
+
+        all_file_index = list(range(1, 301))
+        result = list(map(lambda x: (x, self.__process_one_gene(x)), all_file_index))
+        print(forest.oob_score_)
+        pprint(sorted(result, key = lambda x: x[1]))
+
 if __name__ == "__main__":
-    p = PrepareData()
-    print(len(p.raw_data[0]))
-    print(p.raw_data[1])
-    print(p.tag)
+    import numpy as np
+    import pandas as pd
+
+    from sklearn.ensemble import RandomForestClassifier
+
+    prepared_data = PrepareData()
+    labels = prepared_data.tag
+    raw_data = prepared_data.raw_data
+    training_data = raw_data[1:]
+    index_data = raw_data[0]
+
+    forest = RandomForestClassifier(n_estimators=5000, random_state=0, n_jobs=-1, oob_score=True)
+    forest.fit(training_data, labels)
+
+    importances = forest.feature_importances_
+    indices = np.argsort(importances)[::-1]
+
+    tmp = dict(map(lambda x: (index_data[x], importances[x]), indices[0:20]))
+    print(tmp)
+
+    print(importances)
+    print(indices)
+
+    print(forest.oob_score_)
+    data2save = []
+
+    for f in range(len(index_data)):
+        print("%2d) %-*s %f" % (indices[f], 30, index_data[indices[f]], importances[indices[f]]))
+        data2save.append([indices[f], index_data[indices[f]], importances[indices[f]]])
+
+    result_df_2save = pd.DataFrame(data=data2save, columns=["index", "name", "importance"])
+    result_df_2save.to_csv("./result/2.csv")
+
