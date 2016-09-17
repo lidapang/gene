@@ -65,13 +65,7 @@ class PrepareData():
             for line in tag_file.readlines():
                 tags.append(line[0])
         return tags
-# raw_data = parse_file(genotype_path)
-# data_frame = pd.DataFrame(raw_data[1:], columns=raw_data[0])
-# fac = pd.factorize(data_frame['rs3094315'])
-# print(data_frame)
-# print(fac[0])
-# print(type(fac[0]))
-# print(len(fac[0]))
+
 if __name__ == "__main__":
     p = PrepareData()
     print(len(p.raw_data[0]))
