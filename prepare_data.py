@@ -23,10 +23,6 @@ class PrepareData():
         data = []
         fix_error = {'II': 'TT', 'ID': 'TC', 'DD': 'CC'}
 
-        a = 1
-        c = 2
-        t = 3
-        g = 6
         transform = {
             'AA': 2,
             'CC': 4,
