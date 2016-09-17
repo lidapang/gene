@@ -1,8 +1,10 @@
+import Aprio as AP
 import pandas as pd
 import numpy as np
 from sklearn.feature_extraction import DictVectorizer
 
 phenotype_path = "./data/genotype.dat"
+# phenotype_path = "D:\建模\gene\data\genotype.dat"
 
 def parse_line(line):
     raw = line.split(" ")
@@ -30,3 +32,33 @@ print(data_frame)
 # print(fac[0])
 # print(type(fac[0]))
 # print(len(fac[0]))
+# write_path = "./data/question1_0.dat"
+# try:
+#     with open(write_path, 'w') as write_path:
+#         for line in raw_data:
+#             write_path.writelines(str(line)+"\n")
+# except FileNotFoundError:
+#     f = open(write_path)
+#     for line in data_frame:
+#         f.writelines(line)
+#
+#     f.close()
+
+# data_lines = pd.read_table('./data/question1_1_noflag.txt', header=None, encoding='utf8', delim_whitespace=True,
+#                            index_col=0)
+# print(data_lines)
+
+# a = AP.Apriori(data_frame)
+
+# print(a.do())
+
+noflag_path = "./data/question1_1_noflag.txt"
+with open(noflag_path) as noflag:
+    data_noflag = []
+    dir_noflag = {}
+    for line in noflag:
+        data_noflag.append(line)
+        dir_noflag.s
+
+print(type(data_noflag))
+print(len(data_noflag))
