@@ -69,10 +69,12 @@ class PrepareData():
     def tag(self):
         self.__logger.info("Staring handling tags file: %s", self.__phenotype_path)
         tags = []
+        fix_format = {'0':0, '1': 1}
 
         with open(self.__phenotype_path) as tag_file:
             for line in tag_file.readlines():
-                tags.append(line[0])
+                tmp_line = line[0]
+                tags.append(fix_format[tmp_line])
         return tags
 
     def __read_gene_content(self, gene_num):
