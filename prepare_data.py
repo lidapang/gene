@@ -180,7 +180,8 @@ if __name__ == "__main__":
     results = prepared_data.get_results_with_rf(training_data, training_tags)
     importances = results['importances']
     oob = results['oob']
-    indices = np.argsort(importances)[::-1][0]
+    indices = np.argsort(importances)[::-1]
+    print(indices)
 
     accuracy = []
 
@@ -199,69 +200,4 @@ if __name__ == "__main__":
         print("Accuracy: ", accuracy_score(testing_tags, true_testing_tags))
         accuracy.append(accuracy_score(testing_tags, true_testing_tags))
 
-
-    # def get_true_data(index, testing_data):
-    #     true_data = []
-    #     index = index
-
-    #     for i in testing_data:
-    #         true_data.append(np.array(i)[index])
-
-    #     return true_data
-
-    # prepared_data = PrepareData()
-    # tags = prepared_data.tag
-    # raw_data = prepared_data.raw_data
-    # index_data = raw_data[0]
-
-    # training_data, testing_data, training_tags, testing_tags = cross_validation.train_test_split(
-    #     raw_data[1:],
-    #     tags,
-    #     test_size=0.3
-    # )
-
-    # results = prepared_data.get_results_with_lr(training_data, training_tags)
-    # importances = results['importances']
-
-    # indices = np.argsort(importances)[::-1][0]
-    # print(indices)
-
-    # accuracy = []
-
-    # important_index = indices[0:10]
-
-    # true_training_data = get_true_data(important_index, training_data)
-    # print(np.array(training_data).shape)
-    # print(np.array(true_training_data).shape)
-
-    # predict = LogisticRegression(C=1, penalty='l1', tol=0.01, n_jobs=-1)
-    # predict.fit(true_training_data, training_tags)
-
-
-    # for i in range(10, 10000, 10):
-
-    #     print("Tree Number: ", i)
-
-    #     important_index = indices[0:i]
-
-    #     true_training_data = get_true_data(important_index, training_data)
-
-    #     predict = LogisticRegression(C=1, penalty='l1', tol=0.01, n_jobs=-1)
-    #     predict.fit(true_training_data, training_tags)
-    #     true_testing_data = get_true_data(important_index, testing_data)
-    #     true_testing_tags = predict.predict(true_testing_data)
-    #     print(true_testing_tags)
-    #     print("Accuracy: ", accuracy_score(testing_tags, true_testing_tags))
-    #     accuracy.append(accuracy_score(testing_tags, true_testing_tags))
-
-
-
-    # data2save = []
-
-    # for f in range(len(index_data)):
-    #     print("%2d) %-*s %f" % (indices[f], 30, index_data[indices[f]], importances[indices[f]]))
-    #     data2save.append([indices[f], index_data[indices[f]], importances[indices[f]]])
-
-    # result_df_2save = pd.DataFrame(data=data2save, columns=["index", "name", "importance"])
-    # result_df_2save.to_csv("./result/2.csv")
 
