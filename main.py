@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from pprint import pprint
 from prepare_data import PrepareData
 from sklearn.ensemble import RandomForestClassifier
@@ -9,7 +10,7 @@ prepared_data = PrepareData()
 labels = prepared_data.tag
 raw_data = prepared_data.raw_data
 training_data = raw_data[1:]
-# index_data = raw_data[0]
+index_data = raw_data[0]
 print(np.array(labels).shape)
 print(np.array(training_data).shape)
 
@@ -30,13 +31,6 @@ from sklearn.feature_selection import SelectPercentile, f_classif, SelectKBest, 
 
 ###############################################################################
 # import some data to play with
-
-# The iris dataset
-iris = datasets.load_iris()
-
-# Some noisy data not correlated
-E = np.random.uniform(0, 0.1, size=(len(iris.data), 20))
-
 # Add the noisy data to the informative features
 X = np.array(training_data)
 y = labels
@@ -54,8 +48,16 @@ scores = selector.scores_
 scores /= scores.max()
 # plt.bar(X_indices - .45, scores, width=.2,
 #         label=r'Chi2 Score (scores)', color='g')
-print(np.argsort(scores)[::-1])
-###############################################################################
+# indices = np.argsort(scores)[::-1]
+# data2save = []
+#
+# for f in range(len(index_data)):
+#     print("%2d) %-*s %f" % (indices[f], 30, index_data[indices[f]], scores[indices[f]]))
+#     data2save.append([indices[f], index_data[indices[f]], scores[indices[f]]])
+#
+# result_df_2save = pd.DataFrame(data=data2save, columns=["index", "name", "importance"])
+# result_df_2save.to_csv("./result/2_chi2.csv")
+
 # Compare to the weights of an SVM
 # clf = RandomForestClassifier(n_estimators=3000, n_jobs=-1)
 # clf.fit(X, y)
@@ -64,12 +66,19 @@ print(np.argsort(scores)[::-1])
 # svm_weights /= svm_weights.max()
 
 
-# clf_selected = RandomForestClassifier(n_estimators=3000, n_jobs=-1)
-# clf_selected.fit(selector.transform(X), y)
-#
-# svm_weights_selected = clf_selected.feature_importances_ * 100
-# svm_weights_selected /= svm_weights_selected.max()
-#
-# plt.bar(X_indices[selector.get_support()] - .05, svm_weights_selected,
-#         width=.2, label='RF importance after selection', color='b')
+clf_selected = RandomForestClassifier(n_estimators=3000, n_jobs=-1)
+clf_selected.fit(selector.transform(X), y)
 
+svm_weights_selected = clf_selected.feature_importances_ * 100
+svm_weights_selected /= svm_weights_selected.max()
+
+indices = np.argsort(svm_weights_selected)[::-1]
+
+data2save = []
+
+for f in range(0, 100):
+    # print("%2d) %-*s %f" % (indices[f], 30, index_data[indices[f]], svm_weights_selected[indices[f]]))
+    data2save.append([indices[f], index_data[indices[f]], svm_weights_selected[indices[f]]])
+
+result_df_2save = pd.DataFrame(data=data2save, columns=["index", "name", "importance"])
+result_df_2save.to_csv("./result/2_rf_selected.csv")
