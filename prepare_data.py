@@ -8,6 +8,7 @@ from logging.config import fileConfig
 from pprint import pprint
 
 class PrepareData():
+
     def __init__(self,
                  genotype_path="./data/genotype.dat",
                  phenotype_path="./data/phenotype.txt",
@@ -101,21 +102,17 @@ class PrepareData():
 
         index_data = self.raw_data[0]
 
-        forest = RandomForestClassifier(n_estimators=8000, random_state=0, n_jobs=-1, oob_score=True)
-        forest.fit(self.raw_data[1:], self.tag)
-
-        importances = forest.feature_importances_
+        importances = self.get_results_with_rf(self.raw_data[1:], self.tag)['importances']
 
         indices = np.argsort(importances)[::-1]
-        self.__importances = dict(map(lambda x: (index_data[x], importances[x]), indices[0:2]))
+        self.__importances = dict(map(lambda x: (index_data[x], importances[x]), indices[0:10]))
 
         all_file_index = list(range(1, 301))
         result = list(map(lambda x: (x, self.__process_one_gene(x)), all_file_index))
-        print(forest.oob_score_)
         pprint(sorted(result, key = lambda x: x[1]))
 
     @property
-    def multi_pheno_data(self):
+    def __multi_pheno_data(self):
         data = []
         fix_format = {'0': 0, '1': 1}
 
@@ -132,39 +129,139 @@ class PrepareData():
         from sklearn.cluster import KMeans
 
         kmeans = KMeans(n_clusters=2, n_jobs=-1, random_state=150)
-        kmeans.fit(self.multi_pheno_data)
+        kmeans.fit(self.__multi_pheno_data)
 
         return kmeans.labels_
 
-if __name__ == "__main__":
+    def get_results_with_rf(self, training_data, tags):
+        from sklearn.ensemble import RandomForestClassifier
 
+        rfclassifier = RandomForestClassifier(n_estimators=3000, random_state=0, n_jobs=-1, oob_score=True)
+        rfclassifier.fit(training_data, tags)
+
+        return {"importances": rfclassifier.feature_importances_, "oob": rfclassifier.oob_score_}
+
+    def get_results_with_lr(self, training_data, tags):
+        from sklearn.linear_model import LogisticRegression
+
+        lr_model = LogisticRegression(C=1, penalty='l1', tol=0.01, n_jobs=-1)
+        lr_model.fit(training_data, tags)
+
+        return {"importances": lr_model.coef_}
+
+
+
+if __name__ == "__main__":
+    from sklearn import cross_validation
+    from sklearn.metrics import accuracy_score
     from sklearn.ensemble import RandomForestClassifier
+    from sklearn.linear_model import LogisticRegression
+
+
+    def get_true_data(index, testing_data):
+        true_data = []
+
+        for i in testing_data:
+            true_data.append(np.array(i)[index])
+
+        return true_data
 
     prepared_data = PrepareData()
-    labels = prepared_data.tag
+    tags = prepared_data.tag
     raw_data = prepared_data.raw_data
-    training_data = raw_data[1:]
     index_data = raw_data[0]
 
-    forest = RandomForestClassifier(n_estimators=3000, random_state=0, n_jobs=-1, oob_score=True)
-    forest.fit(training_data, labels)
+    training_data, testing_data, training_tags, testing_tags = cross_validation.train_test_split(
+        raw_data[1:],
+        tags,
+        test_size=0.3
+    )
 
-    importances = forest.feature_importances_
-    indices = np.argsort(importances)[::-1]
+    results = prepared_data.get_results_with_rf(training_data, training_tags)
+    importances = results['importances']
+    oob = results['oob']
+    indices = np.argsort(importances)[::-1][0]
 
-    tmp = dict(map(lambda x: (index_data[x], importances[x]), indices[0:20]))
-    print(tmp)
+    accuracy = []
 
-    print(importances)
-    print(indices)
+    for i in range(1, 10000, 10):
 
-    print(forest.oob_score_)
-    data2save = []
+        print("Tree Number: ", i)
 
-    for f in range(len(index_data)):
-        print("%2d) %-*s %f" % (indices[f], 30, index_data[indices[f]], importances[indices[f]]))
-        data2save.append([indices[f], index_data[indices[f]], importances[indices[f]]])
+        important_index = indices[0:i]
 
-    result_df_2save = pd.DataFrame(data=data2save, columns=["index", "name", "importance"])
-    result_df_2save.to_csv("./result/2.csv")
+        true_training_data = get_true_data(important_index, training_data)
+        predict = RandomForestClassifier(n_estimators=500, n_jobs=-1, random_state=0)
+        predict.fit(true_training_data, training_tags)
+        true_testing_data = get_true_data(important_index, testing_data)
+        true_testing_tags = predict.predict(true_testing_data)
+        print(true_testing_tags)
+        print("Accuracy: ", accuracy_score(testing_tags, true_testing_tags))
+        accuracy.append(accuracy_score(testing_tags, true_testing_tags))
+
+
+    # def get_true_data(index, testing_data):
+    #     true_data = []
+    #     index = index
+
+    #     for i in testing_data:
+    #         true_data.append(np.array(i)[index])
+
+    #     return true_data
+
+    # prepared_data = PrepareData()
+    # tags = prepared_data.tag
+    # raw_data = prepared_data.raw_data
+    # index_data = raw_data[0]
+
+    # training_data, testing_data, training_tags, testing_tags = cross_validation.train_test_split(
+    #     raw_data[1:],
+    #     tags,
+    #     test_size=0.3
+    # )
+
+    # results = prepared_data.get_results_with_lr(training_data, training_tags)
+    # importances = results['importances']
+
+    # indices = np.argsort(importances)[::-1][0]
+    # print(indices)
+
+    # accuracy = []
+
+    # important_index = indices[0:10]
+
+    # true_training_data = get_true_data(important_index, training_data)
+    # print(np.array(training_data).shape)
+    # print(np.array(true_training_data).shape)
+
+    # predict = LogisticRegression(C=1, penalty='l1', tol=0.01, n_jobs=-1)
+    # predict.fit(true_training_data, training_tags)
+
+
+    # for i in range(10, 10000, 10):
+
+    #     print("Tree Number: ", i)
+
+    #     important_index = indices[0:i]
+
+    #     true_training_data = get_true_data(important_index, training_data)
+
+    #     predict = LogisticRegression(C=1, penalty='l1', tol=0.01, n_jobs=-1)
+    #     predict.fit(true_training_data, training_tags)
+    #     true_testing_data = get_true_data(important_index, testing_data)
+    #     true_testing_tags = predict.predict(true_testing_data)
+    #     print(true_testing_tags)
+    #     print("Accuracy: ", accuracy_score(testing_tags, true_testing_tags))
+    #     accuracy.append(accuracy_score(testing_tags, true_testing_tags))
+
+
+
+    # data2save = []
+
+    # for f in range(len(index_data)):
+    #     print("%2d) %-*s %f" % (indices[f], 30, index_data[indices[f]], importances[indices[f]]))
+    #     data2save.append([indices[f], index_data[indices[f]], importances[indices[f]]])
+
+    # result_df_2save = pd.DataFrame(data=data2save, columns=["index", "name", "importance"])
+    # result_df_2save.to_csv("./result/2.csv")
 
