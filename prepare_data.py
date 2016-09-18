@@ -100,19 +100,16 @@ class PrepareData():
         return rate
 
     def process_all_gene(self):
-        import pandas as pd
-        from sklearn.ensemble import RandomForestClassifier
-
         index_data = self.raw_data[0]
 
         importances = self.get_results_with_rf(self.raw_data[1:], self.tag)['importances']
 
         indices = np.argsort(importances)[::-1]
-        self.__importances = dict(map(lambda x: (index_data[x], importances[x]), indices[0:10]))
+        self.__importances = dict(map(lambda x: (index_data[x], importances[x]), indices[0:20]))
 
         all_file_index = list(range(1, 301))
-        result = list(map(lambda x: (x, self.__process_one_gene(x)), all_file_index))
-        pprint(sorted(result, key = lambda x: x[1]))
+        result = list(map(lambda x: [x, self.__process_one_gene(x)], all_file_index))
+        return result
 
     @property
     def __multi_pheno_data(self):

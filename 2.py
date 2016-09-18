@@ -49,7 +49,7 @@ if __name__ == "__main__":
         data2save.append([indices[f], index_data[indices[f]], scores[indices[f]]])
 
     result_df_2save = pd.DataFrame(data=data2save, columns=["index", "name", "importance"])
-    result_df_2save.to_csv("./result/2_chi2.csv")
+    result_df_2save.to_csv("./result/2_chi2.csv", index=False)
 
     ## RF
     clf = RandomForestClassifierWithCoef(n_estimators=3000, n_jobs=-1)
@@ -71,7 +71,7 @@ if __name__ == "__main__":
         data2save.append([indices[f], index_data[indices[f]], svm_weights[indices[f]]])
 
     result_df_2save = pd.DataFrame(data=data2save, columns=["index", "name", "importance"])
-    result_df_2save.to_csv("./result/2_rf.csv")
+    result_df_2save.to_csv("./result/2_rf.csv", index=False)
 
 
     ## RF Selected
@@ -95,19 +95,19 @@ if __name__ == "__main__":
         data2save.append([indices[f], index_data[indices[f]], svm_weights[indices[f]]])
 
     result_df_2save = pd.DataFrame(data=data2save, columns=["index", "name", "importance"])
-    result_df_2save.to_csv("./result/2_rf_selected.csv")
+    result_df_2save.to_csv("./result/2_rf_selected.csv", index=False)
 
     ## Selected the best number of feature
-    rf = RandomForestClassifier(n_estimators=2000, n_jobs=-1)
-    rfecv = RFECV(estimator=rf, step=100, cv=StratifiedKFold(y, 2),
-              scoring='roc_auc')
-    rfecv.fit(X, y)
-    print("Optimal number of features : %d" % rfecv.n_features_)
-    plt.figure()
-    plt.xlabel("Number of features selected")
-    plt.ylabel("Cross validation score (nb of correct classifications)")
-    plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
-    plt.savefig("2_rfecv.png")
-    plt.show()
+    # rf = RandomForestClassifier(n_estimators=2000, n_jobs=-1)
+    # rfecv = RFECV(estimator=rf, step=100, cv=StratifiedKFold(y, 2),
+    #           scoring='roc_auc')
+    # rfecv.fit(X, y)
+    # print("Optimal number of features : %d" % rfecv.n_features_)
+    # plt.figure()
+    # plt.xlabel("Number of features selected")
+    # plt.ylabel("Cross validation score (nb of correct classifications)")
+    # plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+    # plt.savefig("2_rfecv.png")
+    # plt.show()
 
 
