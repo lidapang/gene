@@ -6,6 +6,7 @@ from pprint import pprint
 from prepare_data import PrepareData
 from sklearn import datasets, svm
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.feature_selection import SelectPercentile, f_classif, SelectKBest, chi2, RFECV
 from sklearn_patch import RandomForestClassifierWithCoef
@@ -22,7 +23,7 @@ if __name__ == "__main__":
     X_indices = np.arange(X.shape[-1])
 
     ## Chi2 test
-    selector = SelectKBest(chi2, k=100)
+    selector = SelectKBest(chi2, k=20)
     selector.fit(X, y)
     scores = selector.scores_
     pvalues = -np.log10(selector.pvalues_)
@@ -52,7 +53,7 @@ if __name__ == "__main__":
     result_df_2save.to_csv("./result/2_chi2.csv", index=False)
 
     ## RF
-    clf = RandomForestClassifierWithCoef(n_estimators=3000, n_jobs=-1)
+    clf = RandomForestClassifierWithCoef(n_estimators=10000, n_jobs=-1)
     clf.fit(X, y)
     svm_weights = clf.feature_importances_ * 100
     svm_weights /= svm_weights.max()
@@ -91,7 +92,7 @@ if __name__ == "__main__":
 
     ## Save rf csv
     data2save = []
-    for f in range(0, 100):
+    for f in range(0, 20):
         data2save.append([indices[f], index_data[indices[f]], svm_weights[indices[f]]])
 
     result_df_2save = pd.DataFrame(data=data2save, columns=["index", "name", "importance"])
@@ -99,15 +100,16 @@ if __name__ == "__main__":
 
     ## Selected the best number of feature
     # rf = RandomForestClassifier(n_estimators=2000, n_jobs=-1)
-    # rfecv = RFECV(estimator=rf, step=100, cv=StratifiedKFold(y, 2),
-    #           scoring='roc_auc')
-    # rfecv.fit(X, y)
-    # print("Optimal number of features : %d" % rfecv.n_features_)
-    # plt.figure()
-    # plt.xlabel("Number of features selected")
-    # plt.ylabel("Cross validation score (nb of correct classifications)")
-    # plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
-    # plt.savefig("2_rfecv.png")
-    # plt.show()
+    svc = SVC(kernel="linear")
+    rfecv = RFECV(estimator=svc, step=100, cv=StratifiedKFold(y, 2),
+              scoring='roc_auc')
+    rfecv.fit(X, y)
+    print("Optimal number of features : %d" % rfecv.n_features_)
+    plt.figure()
+    plt.xlabel("Number of features selected")
+    plt.ylabel("Cross validation score (nb of correct classifications)")
+    plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+    plt.savefig("2_rfecv.png")
+    plt.show()
 
 
