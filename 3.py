@@ -20,6 +20,9 @@ if __name__ == "__main__":
     ## Plot
     plt.figure()
     plt.bar(index, value, width=.2, color='g')
+    plt.title("Gene Importance Bar Image")
+    plt.xlabel("Gene number")
+    plt.ylabel("Gene importance")
     plt.savefig('./result/3.png')
     plt.close()
 

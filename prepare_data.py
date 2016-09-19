@@ -127,11 +127,27 @@ class PrepareData():
     @property
     def multi_pheno_tags(self):
         from sklearn.cluster import KMeans
+        from scipy.spatial.distance import cdist
+        import matplotlib.pyplot as plt
 
-        kmeans = KMeans(n_clusters=2, n_jobs=-1, random_state=150)
-        kmeans.fit(self.__multi_pheno_data)
+        meandistortions = []
+        K = range(1, 15)
+        for k in K:
+            kmeans = KMeans(n_clusters=k, n_jobs=-1, random_state=150)
+            kmeans.fit(self.__multi_pheno_data)
+            meandistortions.append(sum(np.min(cdist(self.__multi_pheno_data, kmeans.cluster_centers_, 'euclidean'), axis=1))/np.array(self.__multi_pheno_data).shape[0])
 
-        return kmeans.labels_
+        plt.plot(list(K), meandistortions, 'rx-')
+        plt.xlabel("k")
+        plt.ylabel("Average distortion")
+        plt.title('Selectiong k with the Elbow Method')
+        plt.savefig("./result/best_k.png")
+        plt.show()
+
+        rkmeans = KMeans(n_clusters=2, n_jobs=-1, random_state=150)
+        rkmeans.fit(self.__multi_pheno_data)
+
+        return rkmeans.labels_
 
     def get_results_with_rf(self, training_data, tags):
         from sklearn.ensemble import RandomForestClassifier
