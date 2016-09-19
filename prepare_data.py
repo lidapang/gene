@@ -33,6 +33,8 @@ class PrepareData():
 
     @property
     def raw_data(self):
+        from sklearn.preprocessing import OneHotEncoder
+        one_hot = OneHotEncoder()
         self.__logger.info("Starting handling raw data file: %s", self.__genotype_path)
         data = []
         fix_error = {'II': 'TT', 'ID': 'TC', 'DD': 'CC'}
@@ -64,7 +66,7 @@ class PrepareData():
                 transform_line = [transform[x] if x in transform else x
                                   for x in fix_error_line]
                 data.append(transform_line)
-        return data
+        return one_hot.fit_transform(data)
 
     @property
     def tag(self):
